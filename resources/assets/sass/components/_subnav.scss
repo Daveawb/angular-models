@@ -1,0 +1,41 @@
+.subnav-spacer {
+  position:absolute;
+  top:0;
+  visibility:hidden;
+  display:block;
+  height:37px;
+  width:100px;
+}
+
+.subnav-nav {
+  @include transition(0.4s ease-in opacity);
+  @media (min-width: $grid-float-breakpoint) {
+
+    > li {
+      display:inline-block;
+      margin-left:2px;
+      margin-right:2px;
+      > a {
+        padding-top:    $navbar-padding-vertical / 3;
+        padding-bottom: $navbar-padding-vertical / 3;
+        margin-bottom: 0
+      }
+    }
+  }
+  background-color:$gray-dark;
+  padding:4px 0;
+}
+
+.subnav {
+  margin:0 -15px;
+  @media (min-width: $grid-float-breakpoint) {
+    &.subnav-fixed {
+      position:fixed;
+      margin:0;
+      top:0;
+      left:0;
+      right:0;
+      z-index:1;
+    }
+  }
+}

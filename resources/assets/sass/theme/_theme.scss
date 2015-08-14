@@ -1,0 +1,18 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:600,400);
+@import url(http://fonts.googleapis.com/css?family=Ubuntu:700);
+
+@import 'variables';
+@import '../../../vendor/bootstrap-sass/assets/stylesheets/bootstrap';
+@import '../../../vendor/fontawesome/scss/font-awesome';
+
+/**
+ * Theme standard styling
+ */
+.content {
+  margin-top:7px;
+}
+
+.filters > div {
+  padding:5px 0;
+  background-color:#fff;
+}
