@@ -1,5 +1,4 @@
-/vendor
 /node_modules
-/resources/vendor/
+/bower_components
 /.idea
 .env
