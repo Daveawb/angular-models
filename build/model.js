@@ -235,4 +235,9 @@
         }
     }
 
+    var modelMethods = { keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
+        omit: 0, chain: 1, isEmpty: 1 };
+
+    addLodashMethods(Model, modelMethods, 'attributes');
+
 })(angular);

@@ -31,8 +31,15 @@ gulp.task('test:tdd', function (done) {
     }, done).start();
 });
 
+gulp.task('test:dist', function(done) {
+    new Server({
+        configFile: __dirname + '/karmaDist.conf.js',
+        singleRun: true
+    }, done).start();
+})
+
 gulp.task('dist', function(done) {
-    return inSequence(['unminified', 'minified']);
+    return inSequence(['unminified', 'minified', 'test:dist']);
 });
 
 gulp.task('unminified', function(done) {

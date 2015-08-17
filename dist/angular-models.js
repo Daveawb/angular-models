@@ -18,6 +18,47 @@ function stringPath(object, path) {
     }
     return object;
 }
+
+/**
+ *
+ * @param length
+ * @param method
+ * @param attribute
+ * @returns {Function}
+ */
+function addMethod(length, method, attribute) {
+    switch (length) {
+        case 1: return function() {
+            return _[method](this[attribute]);
+        };
+        case 2: return function(value) {
+            return _[method](this[attribute], value);
+        };
+        case 3: return function(iteratee, context) {
+            return _[method](this[attribute], iteratee, context);
+        };
+        case 4: return function(iteratee, defaultVal, context) {
+            return _[method](this[attribute], iteratee, defaultVal, context);
+        };
+        default: return function() {
+            var args = slice.call(arguments);
+            args.unshift(this[attribute]);
+            return _[method].apply(_, args);
+        };
+    }
+};
+
+/**
+ *
+ * @param Class
+ * @param methods
+ * @param attribute
+ */
+function addLodashMethods(Class, methods, attribute) {
+    _.each(methods, function(length, method) {
+        if (_[method]) Class.prototype[method] = addMethod(length, method, attribute);
+    });
+};
 (function(angular) {
     angular.module('daveawb.angularModels', []);
 })(angular);
@@ -229,6 +270,17 @@ function stringPath(object, path) {
             return response;
         }
     }
+
+    var collectionMethods = { forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
+        foldl: 4, inject: 4, reduceRight: 4, foldr: 4, find: 3, detect: 3, filter: 3,
+        select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 2,
+        contains: 2, invoke: 0, max: 3, min: 3, toArray: 1, size: 1, first: 3,
+        head: 3, take: 3, initial: 3, rest: 3, tail: 3, drop: 3, last: 3,
+        without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
+        isEmpty: 1, chain: 1, sample: 3, partition: 3 };
+
+    addLodashMethods(Collection, collectionMethods, 'models');
+
 })(angular);
 (function(angular) {
 
