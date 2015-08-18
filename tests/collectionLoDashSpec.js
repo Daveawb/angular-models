@@ -198,5 +198,113 @@ describe('Collections', function() {
         expect(result).toBeFalsy();
     });
 
+    it("should extend lodash contains function", function() {
+        var result = col.include(col.get(1));
+        expect(result).toBeTruthy();
 
+        result = col.include(col.get(3));
+        expect(result).toBeFalsy();
+    });
+
+    it("should extend lodash invoke function", function() {
+        var model = col.get(1);
+
+        col.invoke('set', 'active', false);
+
+        expect(model.get('active')).toBe(false);
+    });
+
+    it("should extend lodash max function", function() {
+        var result = col.max(function(model) {
+            return model.get('age');
+        });
+
+        expect(result.get('age')).toEqual(33);
+    });
+
+    it("should extend lodash min function", function() {
+        var result = col.min(function(model) {
+            return model.get('age');
+        });
+
+        expect(result.get('age')).toEqual(22);
+    });
+
+    it("should extend lodash toArray function", function() {
+        var result = col.toArray();
+
+        expect(_.isArray(result)).toBe(true);
+    });
+
+    it("should extend lodash size function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash first function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash head function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash take function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash initial function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash rest function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash tail function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash drop function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash last function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash without function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash difference function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash indexof function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash shuffle function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash lastIndexof function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash isEmpty function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash chain function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash sample function", function() {
+        expect(col.size()).toEqual(2);
+    });
+
+    it("should extend lodash partition function", function() {
+        expect(col.size()).toEqual(2);
+    });
 });

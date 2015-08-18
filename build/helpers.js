@@ -17,7 +17,7 @@ function stringPath(object, path) {
         }
     }
     return object;
-}
+};
 
 /**
  *
@@ -41,7 +41,7 @@ function addMethod(length, method, attribute) {
             return _[method](this[attribute], iteratee, defaultVal, context);
         };
         default: return function() {
-            var args = slice.call(arguments);
+            var args = [].slice.call(arguments);
             args.unshift(this[attribute]);
             return _[method].apply(_, args);
         };
