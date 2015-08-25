@@ -55,4 +55,4 @@ gulp.task('minified', function(done) {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('default', ['tdd']);
+gulp.task('default', ['test:tdd']);

@@ -59,6 +59,29 @@ describe('Collections', function() {
         expect(col.models[0].get('name')).toEqual('David');
     });
 
+    it("should add the collection reference to the model", function() {
+        var Mod = Model.extend({});
+        var Col = Collection.extend({
+            model : Mod
+        });
+
+        var NotCol = Collection.extend({
+            model : Model
+        });
+
+        var col = new Col([
+            { name : "David" },
+            { name : "Iva" },
+            { name : "Alex" }
+        ]);
+
+        var model = col.findWhere({name:"David"});
+
+        expect(model.collection).toEqual(col);
+        expect(model.collection instanceof Col).toEqual(true);
+        expect(model.collection instanceof NotCol).toEqual(false);
+    });
+
     it("should update a model if it already exists", function() {
         var Col = Collection.extend({
             model : Model
@@ -72,5 +95,21 @@ describe('Collections', function() {
 
         expect(col.get(1).get('name')).toEqual('David Barker');
         expect(col.get(1).get('age')).toEqual(33);
+    });
+
+    it("should find models where properties match a predicate object", function() {
+        var Mod = Model.extend({});
+        var Col = Collection.extend({
+            model : Mod
+        });
+
+        var col = new Col([
+            { name : "David", age:34 },
+            { name : "Iva", age:34 },
+            { name : "Alex", age:23 }
+        ]);
+
+        expect(col.findWhere({name:"David"}).get('name')).toBe("David");
+        expect(col.where({age:34}).length).toBe(2);
     });
 });

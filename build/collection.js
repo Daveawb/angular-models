@@ -37,7 +37,7 @@
         this.set(models, options);
     }
 
-    Collection.prototype = {
+    _.extend(Collection.prototype, {
 
         /**
          * The model used for this collection
@@ -64,7 +64,7 @@
                 if (exists) {
                     exists.set(value, options);
                 } else {
-                    var model = new Model(value, options);
+                    var model = new Model(value, _.extend({collection:self}, options));
                     self.models.push(model);
 
                     if (model.isNew()) {
@@ -87,6 +87,24 @@
             if (obj == null) return void 0;
             var id = this.modelId(this._isModel(obj) ? obj.attributes : obj);
             return this._byId[obj] || this._byId[id] || this._byId[obj.uid];
+        },
+
+        /**
+         * Find a model
+         * @param attrs
+         * @param first
+         * @returns {*}
+         */
+        where : function(attrs, first) {
+            return this[first ? 'find' : 'filter'](attrs);
+        },
+
+        /**
+         * Find a model by attributes
+         * @param attrs
+         */
+        findWhere: function(attrs) {
+            return this.where(attrs, true);
         },
 
         /**
@@ -128,7 +146,7 @@
             }
 
             return Collection.http.get(url).then(function (response) {
-                response = self.postFetch(response);
+                response = self.parse(response);
                 var data = self.path ? stringPath(response.data, self.path) : response.data;
                 self.set(data);
                 return self;
@@ -143,22 +161,24 @@
         },
 
         /**
-         * A hook to set alternative data on the collection from a response
+         * Parse a response
          * @param data
          * @returns {boolean}
          */
-        postFetch: function (response) {
+        parse: function (response) {
             return response;
         }
-    }
+    });
 
-    var collectionMethods = { forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
+    var collectionMethods = {
+        forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
         foldl: 4, inject: 4, reduceRight: 4, foldr: 4, find: 3, detect: 3, filter: 3,
         select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 2, includes: 2,
         contains: 2, invoke: 0, max: 3, min: 3, toArray: 1, size: 1, first: 3,
         head: 3, take: 3, initial: 3, rest: 3, tail: 3, drop: 3, last: 3,
         without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
-        isEmpty: 1, chain: 1, sample: 3, partition: 3 };
+        isEmpty: 1, chain: 1, sample: 3, partition: 3
+    };
 
     addLodashMethods(Collection, collectionMethods, 'models');
 

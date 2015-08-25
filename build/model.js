@@ -25,7 +25,10 @@
      */
     function Model(attributes, options) {
         var attrs = attributes || {};
+        options || (options = {});
         this.attributes = {};
+        if (options.collection) this.collection = options.collection;
+        if (options.parse) attrs = this.parse(attrs, options) || {};
         this.options = options;
         this.isGuarded  = _.isArray(this.guarded);
         this.isFillable = ! this.isGuarded && _.isArray(this.fillable);
@@ -33,7 +36,7 @@
         this.set(attrs, options);
     }
 
-    Model.prototype = {
+    _.extend(Model.prototype, {
 
         /**
          * Attributes to be type cast
@@ -159,6 +162,16 @@
         },
 
         /**
+         * Parse a response
+         * @param response
+         * @param options
+         * @returns {*}
+         */
+        parse : function(response, options) {
+            return response;
+        },
+
+        /**
          * Check if an attribute is non-null or not-undefined
          * @param attr
          * @returns {boolean}
@@ -201,6 +214,30 @@
         },
 
         /**
+         * Return an HTML escaped attribute
+         * @param attr
+         * @returns {string}
+         */
+        escape : function(attr) {
+            return _.escape(this.get(attr));
+        },
+
+        /**
+         * Return the model as a JSON string
+         */
+        toJson : function() {
+            return JSON.stringify(_.clone(this.attributes));
+        },
+
+        /**
+         * Return the model as an object
+         * @returns {{}|*}
+         */
+        toObject : function() {
+            return this.attributes;
+        },
+
+        /**
          * Cast a value to an integer
          * @param value
          * @returns {Number|*}
@@ -233,7 +270,7 @@
         castToDate : function(value) {
             return new Date(value);
         }
-    }
+    });
 
     var modelMethods = { keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
         omit: 0, chain: 1, isEmpty: 1 };

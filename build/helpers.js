@@ -35,10 +35,10 @@ function addMethod(length, method, attribute) {
             return _[method](this[attribute], value);
         };
         case 3: return function(iteratee, context) {
-            return _[method](this[attribute], iteratee, context);
+            return _[method](this[attribute], itCb(iteratee, this), context);
         };
         case 4: return function(iteratee, defaultVal, context) {
-            return _[method](this[attribute], iteratee, defaultVal, context);
+            return _[method](this[attribute], itCb(iteratee, this), defaultVal, context);
         };
         default: return function() {
             var args = [].slice.call(arguments);
@@ -58,4 +58,29 @@ function addLodashMethods(Class, methods, attribute) {
     _.each(methods, function(length, method) {
         if (_[method]) Class.prototype[method] = addMethod(length, method, attribute);
     });
+};
+
+/**
+ *
+ * @param iteratee
+ * @param instance
+ * @returns {*}
+ */
+var itCb = function(iteratee, instance) {
+    if (_.isFunction(iteratee)) return iteratee;
+    if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
+    if (_.isString(iteratee)) return function(model) { return model.get(iteratee); };
+    return iteratee;
+};
+
+/**
+ * Model match
+ * @param attrs
+ * @returns {Function}
+ */
+var modelMatcher = function(attrs) {
+    var matcher = _.matches(attrs);
+    return function(model) {
+        return matcher(model.attributes);
+    };
 };

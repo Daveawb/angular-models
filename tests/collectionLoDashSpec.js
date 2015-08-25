@@ -89,6 +89,10 @@ describe('Collections', function() {
         });
 
         expect(result.attributes).toEqual({name : "Pete", age: 22, id: 2});
+
+        var result = col.find({name:"Pete"});
+
+        expect(result.attributes).toEqual({name : "Pete", age: 22, id: 2});
     });
 
     it("should extend lodash detect function", function() {
@@ -241,55 +245,76 @@ describe('Collections', function() {
     });
 
     it("should extend lodash first function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.first().get('name')).toEqual("David");
     });
 
     it("should extend lodash head function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.head().get('name')).toEqual("David");
     });
 
     it("should extend lodash take function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.take(1)[0].get('name')).toEqual("David");
+        expect(col.take(1)[1]).toBeUndefined();
+        expect(col.take(2)[1].get('name')).toEqual("Pete");
     });
 
     it("should extend lodash initial function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.initial().length).toEqual(1);
     });
 
     it("should extend lodash rest function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.rest().length).toEqual(1);
+        expect(col.rest()[0].get('name')).toEqual("Pete");
     });
 
     it("should extend lodash tail function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.tail().length).toEqual(1);
+        expect(col.tail()[0].get('name')).toEqual("Pete");
     });
 
     it("should extend lodash drop function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.drop(1).length).toEqual(1);
+        expect(col.drop(2).length).toEqual(0);
+        expect(col.drop(1)[0].get('name')).toEqual("Pete");
     });
 
     it("should extend lodash last function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.last().get('name')).toEqual("Pete");
     });
 
     it("should extend lodash without function", function() {
-        expect(col.size()).toEqual(2);
+        var pete = col.get(2);
+        var david = col.get(1);
+        expect(col.without(pete).length).toEqual(1);
+        expect(col.without(pete)[0].get('name')).toEqual("David");
+        expect(col.without(david).length).toEqual(1);
+        expect(col.without(david)[0].get('name')).toEqual("Pete");
     });
 
     it("should extend lodash difference function", function() {
-        expect(col.size()).toEqual(2);
+        var pete = col.get(2);
+        var david = col.get(1);
+        expect(col.difference([pete]).length).toEqual(1);
+        expect(col.difference([david]).length).toEqual(1);
+        expect(col.difference([david,pete]).length).toEqual(0);
+        expect(col.difference([1]).length).toEqual(2);
     });
 
     it("should extend lodash indexof function", function() {
-        expect(col.size()).toEqual(2);
+        var pete = col.get(2);
+        var david = col.get(1);
+        expect(col.indexOf(david)).toEqual(0);
+        expect(col.indexOf(pete)).toEqual(1);
     });
 
     it("should extend lodash shuffle function", function() {
-        expect(col.size()).toEqual(2);
+        var david = col.get(1);
+        expect(col.shuffle().length).toEqual(2);
     });
 
     it("should extend lodash lastIndexof function", function() {
-        expect(col.size()).toEqual(2);
+        var pete = col.get(2);
+        expect(col.lastIndexOf(pete)).toEqual(1);
     });
 
     it("should extend lodash isEmpty function", function() {
@@ -297,14 +322,18 @@ describe('Collections', function() {
     });
 
     it("should extend lodash chain function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.isEmpty()).toBeFalsy();
+        var nCol = new Collection();
+        expect(nCol.isEmpty()).toBeTruthy();
     });
 
     it("should extend lodash sample function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.sample() instanceof Model).toBe(true);
     });
 
     it("should extend lodash partition function", function() {
-        expect(col.size()).toEqual(2);
+        expect(col.partition(function(model) {
+            return model.get('age') > 25
+        }).length).toEqual(2);
     });
 });

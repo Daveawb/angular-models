@@ -102,6 +102,34 @@ describe('Models', function() {
 
             expect(model.attributes).toEqual({});
         });
+
+        it("should get model as JSON", function() {
+            var attributes = { name : 'David', age : 30, height: '180cm'};
+            var model = new Model(attributes);
+
+            expect(model.toJson()).toEqual(JSON.stringify(attributes));
+        });
+
+        it("should get model as Object", function() {
+            var attributes = { name : 'David', age : 30, height: '180cm'};
+            var model = new Model(attributes);
+
+            expect(model.toObject()).toEqual(attributes);
+        });
+
+        it("should get an escaped HTML encoded attribute", function()
+        {
+            var attributes = {
+                name : 'David',
+                age : 30,
+                height: '180cm',
+                description: "<p>David rocks</p>"
+            };
+
+            var model = new Model(attributes);
+
+            expect(model.escape('description')).toEqual("&lt;p&gt;David rocks&lt;/p&gt;");
+        });
     });
 
     describe("it can get the state of an attribute", function() {
@@ -269,11 +297,8 @@ describe('Models', function() {
 
     it("should be new if no id is set", function() {
         var model = new Model({name : "David"});
-
         expect(model.isNew()).toBe(true);
-
         model.set('id', 1);
-
         expect(model.isNew()).toBe(false);
     })
 });
