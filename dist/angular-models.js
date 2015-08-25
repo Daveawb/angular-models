@@ -17,7 +17,7 @@ function stringPath(object, path) {
         }
     }
     return object;
-}
+};
 
 /**
  *
@@ -35,13 +35,13 @@ function addMethod(length, method, attribute) {
             return _[method](this[attribute], value);
         };
         case 3: return function(iteratee, context) {
-            return _[method](this[attribute], iteratee, context);
+            return _[method](this[attribute], itCb(iteratee, this), context);
         };
         case 4: return function(iteratee, defaultVal, context) {
-            return _[method](this[attribute], iteratee, defaultVal, context);
+            return _[method](this[attribute], itCb(iteratee, this), defaultVal, context);
         };
         default: return function() {
-            var args = slice.call(arguments);
+            var args = [].slice.call(arguments);
             args.unshift(this[attribute]);
             return _[method].apply(_, args);
         };
@@ -58,6 +58,31 @@ function addLodashMethods(Class, methods, attribute) {
     _.each(methods, function(length, method) {
         if (_[method]) Class.prototype[method] = addMethod(length, method, attribute);
     });
+};
+
+/**
+ *
+ * @param iteratee
+ * @param instance
+ * @returns {*}
+ */
+var itCb = function(iteratee, instance) {
+    if (_.isFunction(iteratee)) return iteratee;
+    if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
+    if (_.isString(iteratee)) return function(model) { return model.get(iteratee); };
+    return iteratee;
+};
+
+/**
+ * Model match
+ * @param attrs
+ * @returns {Function}
+ */
+var modelMatcher = function(attrs) {
+    var matcher = _.matches(attrs);
+    return function(model) {
+        return matcher(model.attributes);
+    };
 };
 (function(angular) {
     angular.module('daveawb.angularModels', []);
@@ -156,7 +181,7 @@ function addLodashMethods(Class, methods, attribute) {
         this.set(models, options);
     }
 
-    Collection.prototype = {
+    _.extend(Collection.prototype, {
 
         /**
          * The model used for this collection
@@ -183,7 +208,7 @@ function addLodashMethods(Class, methods, attribute) {
                 if (exists) {
                     exists.set(value, options);
                 } else {
-                    var model = new Model(value, options);
+                    var model = new Model(value, _.extend({collection:self}, options));
                     self.models.push(model);
 
                     if (model.isNew()) {
@@ -206,6 +231,24 @@ function addLodashMethods(Class, methods, attribute) {
             if (obj == null) return void 0;
             var id = this.modelId(this._isModel(obj) ? obj.attributes : obj);
             return this._byId[obj] || this._byId[id] || this._byId[obj.uid];
+        },
+
+        /**
+         * Find a model
+         * @param attrs
+         * @param first
+         * @returns {*}
+         */
+        where : function(attrs, first) {
+            return this[first ? 'find' : 'filter'](attrs);
+        },
+
+        /**
+         * Find a model by attributes
+         * @param attrs
+         */
+        findWhere: function(attrs) {
+            return this.where(attrs, true);
         },
 
         /**
@@ -247,7 +290,7 @@ function addLodashMethods(Class, methods, attribute) {
             }
 
             return Collection.http.get(url).then(function (response) {
-                response = self.postFetch(response);
+                response = self.parse(response);
                 var data = self.path ? stringPath(response.data, self.path) : response.data;
                 self.set(data);
                 return self;
@@ -262,22 +305,24 @@ function addLodashMethods(Class, methods, attribute) {
         },
 
         /**
-         * A hook to set alternative data on the collection from a response
+         * Parse a response
          * @param data
          * @returns {boolean}
          */
-        postFetch: function (response) {
+        parse: function (response) {
             return response;
         }
-    }
+    });
 
-    var collectionMethods = { forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
+    var collectionMethods = {
+        forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
         foldl: 4, inject: 4, reduceRight: 4, foldr: 4, find: 3, detect: 3, filter: 3,
-        select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 2,
+        select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 2, includes: 2,
         contains: 2, invoke: 0, max: 3, min: 3, toArray: 1, size: 1, first: 3,
         head: 3, take: 3, initial: 3, rest: 3, tail: 3, drop: 3, last: 3,
         without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
-        isEmpty: 1, chain: 1, sample: 3, partition: 3 };
+        isEmpty: 1, chain: 1, sample: 3, partition: 3
+    };
 
     addLodashMethods(Collection, collectionMethods, 'models');
 
@@ -309,7 +354,10 @@ function addLodashMethods(Class, methods, attribute) {
      */
     function Model(attributes, options) {
         var attrs = attributes || {};
+        options || (options = {});
         this.attributes = {};
+        if (options.collection) this.collection = options.collection;
+        if (options.parse) attrs = this.parse(attrs, options) || {};
         this.options = options;
         this.isGuarded  = _.isArray(this.guarded);
         this.isFillable = ! this.isGuarded && _.isArray(this.fillable);
@@ -317,7 +365,7 @@ function addLodashMethods(Class, methods, attribute) {
         this.set(attrs, options);
     }
 
-    Model.prototype = {
+    _.extend(Model.prototype, {
 
         /**
          * Attributes to be type cast
@@ -443,6 +491,16 @@ function addLodashMethods(Class, methods, attribute) {
         },
 
         /**
+         * Parse a response
+         * @param response
+         * @param options
+         * @returns {*}
+         */
+        parse : function(response, options) {
+            return response;
+        },
+
+        /**
          * Check if an attribute is non-null or not-undefined
          * @param attr
          * @returns {boolean}
@@ -485,6 +543,30 @@ function addLodashMethods(Class, methods, attribute) {
         },
 
         /**
+         * Return an HTML escaped attribute
+         * @param attr
+         * @returns {string}
+         */
+        escape : function(attr) {
+            return _.escape(this.get(attr));
+        },
+
+        /**
+         * Return the model as a JSON string
+         */
+        toJson : function() {
+            return JSON.stringify(_.clone(this.attributes));
+        },
+
+        /**
+         * Return the model as an object
+         * @returns {{}|*}
+         */
+        toObject : function() {
+            return this.attributes;
+        },
+
+        /**
          * Cast a value to an integer
          * @param value
          * @returns {Number|*}
@@ -517,6 +599,11 @@ function addLodashMethods(Class, methods, attribute) {
         castToDate : function(value) {
             return new Date(value);
         }
-    }
+    });
+
+    var modelMethods = { keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
+        omit: 0, chain: 1, isEmpty: 1 };
+
+    addLodashMethods(Model, modelMethods, 'attributes');
 
 })(angular);
