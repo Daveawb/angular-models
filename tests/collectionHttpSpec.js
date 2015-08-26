@@ -24,14 +24,6 @@ describe('Collections http', function() {
         $httpBackend.verifyNoOutstandingRequest();
     });
 
-    describe("fetching from an api with no url", function() {
-        it("should error", function() {
-            var col = new Collection();
-
-            expect(col.fetch).toThrowError("A URL must be defined on a collection or a urlRoot on a model.");
-        });
-    });
-
     describe("fetching from the api", function() {
         it("should fetch all", function() {
             $httpBackend.expect('GET', '/testapi/items').respond(200, data);
@@ -46,27 +38,13 @@ describe('Collections http', function() {
             col.fetch();
 
             $httpBackend.flush();
-        });
 
-        it("should fetch by id", function() {
-            $httpBackend.expect('GET', '/anotherapi/lists/1').respond(200, model);
-
-            var Col = Collection.extend({
-                url : "/anotherapi/lists",
-                model : Model
-            });
-
-            var col = new Col();
-
-            col.fetch(1);
-
-            $httpBackend.flush();
-
-            expect(col.get(1).toObject()).toEqual({ id: 1, name : "David", age: 33 });
+            expect(col.get(1).get('name')).toBe("David");
+            expect(col.size()).toEqual(4);
         });
 
         it("should fetch and set with custom path", function() {
-            $httpBackend.expect('GET', '/anotherapi/lists/1').respond(200, {data:model});
+            $httpBackend.expect('GET', '/anotherapi/lists').respond(200, {data:data});
 
             var Col = Collection.extend({
                 url : "/anotherapi/lists",
@@ -76,12 +54,12 @@ describe('Collections http', function() {
 
             var col = new Col();
 
-            col.fetch(1);
+            col.fetch();
 
             $httpBackend.flush();
 
-            expect(col.models[0].get('name')).toEqual("David");
-            expect(col.models.length).toEqual(1);
+            expect(col.get(1).get('name')).toEqual("David");
+            expect(col.size()).toEqual(4);
         });
     });
 

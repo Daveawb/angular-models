@@ -1,6 +1,9 @@
-(function(angular) {
+(function(angular, factory) {
+
     angular.module('daveawb.angularModels')
-        .factory('daveawbCollection', Service);
+        .factory('daveawbCollection', ["daveawbHelpers", "daveawbSync", factory]);
+
+})(angular, function(helpers, sync) {
 
     var lodashMethods = {
         forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
@@ -11,26 +14,6 @@
         without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
         isEmpty: 1, chain: 1, sample: 3, partition: 3
     };
-
-    /**
-     * The factory wrapper for DI
-     * @param helpers
-     * @param $http
-     * @returns {Object}
-     * @constructor
-     */
-    function Service(helpers, $http) {
-
-        Collection.extend = helpers.extender;
-        Collection.http = $http;
-        Collection.helpers = helpers;
-
-        helpers.lodash_methods(Collection, lodashMethods, 'models');
-
-        return Collection;
-    }
-
-    Service.$inject = ["daveawbHelpers", "$http"];
 
     /**
      * The collection
@@ -88,6 +71,23 @@
             });
 
             return this;
+        },
+
+        /**
+         * Reset models
+         * @param models
+         * @param options
+         * @returns {*}
+         */
+        reset: function(models, options) {
+            options = options ? _.clone(options) : {};
+            //for (var i = 0; i < this.models.length; i++) {
+            //    this._removeReference(this.models[i], options);
+            //}
+            options.previousModels = this.models;
+            this._reset();
+            models = this.add(models, _.extend({}, options));
+            return models;
         },
 
         /**
@@ -149,25 +149,27 @@
         },
 
         /**
+         * Sync function
+         * @returns {*}
+         */
+        sync : function() {
+            return Collection.$http.apply(this, arguments);
+        },
+
+        /**
          * Fetch data from the API
          */
-        fetch: function (id) {
-            var self = this;
-            var url = this.url;
-
-            if (!url) Collection.helpers.urlError();
-
-            if (id) {
-                url = url.split('/');
-                url.push(id)
-                url = url.join('/');
-            }
-
-            return Collection.http.get(url).then(function (response) {
-                response = self.parse(response);
-                var data = self.path ? Collection.helpers.object_path(response.data, self.path) : response.data;
-                self.set(data);
-                return self;
+        fetch: function (options) {
+            options = _.extend({parse: true}, options);
+            var success = options.success || _.noop;
+            var collection = this;
+            
+            return this.sync('read', this, options).then(function(response) {
+                var method = options.reset ? 'reset' : 'set';
+                var data = collection.path ? helpers.object_path(response.data, collection.path) : response.data;
+                collection[method](data, options);
+                success instanceof Function && success.call(collection, collection, response, options);
+                return collection;
             });
         },
 
@@ -181,4 +183,11 @@
         }
     });
 
-})(angular);
+    Collection.extend  = helpers.extender;
+    Collection.helpers = helpers;
+    Collection.$http   = sync;
+
+    helpers.lodash_methods(Collection, lodashMethods, 'models');
+
+    return Collection;
+});

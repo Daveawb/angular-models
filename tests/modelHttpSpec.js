@@ -32,6 +32,61 @@ describe('Models http', function() {
             expect(model.get('name')).toEqual("David");
         });
 
+        it("should populate model with api data and custom path", function() {
+            $httpBackend.expect('GET', '/testapi/items/1').respond(200, { data : { models : data } });
+
+            var M = Model.extend({ path : "data.models" });
+            var model = new M({id:1});
+
+            model.fetch();
+
+            $httpBackend.flush();
+
+            expect(model.get('name')).toEqual("David");
+        });
+
+        it("should parse data", function() {
+            $httpBackend.expect('GET', '/testapi/items/1').respond(200, data);
+
+            spyOn(model, "parse").and.callThrough();
+
+            model.fetch();
+
+            $httpBackend.flush();
+
+            expect(model.parse).toHaveBeenCalled();
+        });
+
+        it("should not parse data if set to false", function() {
+            $httpBackend.expect('GET', '/testapi/items/1').respond(200, data);
+
+            spyOn(model, "parse");
+
+            model.fetch({ parse : false });
+
+            $httpBackend.flush();
+
+            expect(model.parse).not.toHaveBeenCalled();
+        });
+
+        it("should call a custom success function", function() {
+            $httpBackend.expect('GET', '/testapi/items/1').respond(200, data);
+
+            var options = {
+                success : function(response) {
+                    return response;
+                }
+            }
+
+            spyOn(options, "success").and.callThrough();
+
+            model.fetch(options);
+
+            $httpBackend.flush();
+
+            expect(options.success).toHaveBeenCalled();
+        });
+
     });
 
     describe("saving a model", function() {

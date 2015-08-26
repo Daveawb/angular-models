@@ -208,9 +208,8 @@
             var success = options.success || _.noop();
 
             return this.sync('read', this, options).then(function(response) {
-                var path = model.path || "data";
-
-                var serverAttrs = options.parse ? model.parse(Model.helpers.object_path(response, path), options) : response;
+                var data = model.path ? Model.helpers.object_path(response.data, model.path) : response.data;
+                var serverAttrs = options.parse ? model.parse(data, options) : response;
 
                 if ( ! model.set(serverAttrs, options)) {
                     return false;
