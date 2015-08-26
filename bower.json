@@ -4,6 +4,7 @@
   "authors": [
     "daveawb <david.aw.barker@gmail.com>"
   ],
+  "main" : "dist/angular-models.js",
   "license": "MIT",
   "ignore": [
     "**/.*",

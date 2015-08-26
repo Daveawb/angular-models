@@ -4,18 +4,38 @@
         .service('daveawbModel', ModelService);
 
     /**
+     * Lodash methods models use
+     * @type {{keys: number, values: number, pairs: number, invert: number, pick: number, omit: number, chain: number, isEmpty: number}}
+     */
+    var lodashMethods = {
+        keys: 1,
+        values: 1,
+        pairs: 1,
+        invert: 1,
+        pick: 0,
+        omit: 0,
+        chain: 1,
+        isEmpty: 1
+    };
+
+    /**
      * The service wrapper for DI
      * @param $http
      * @param $extender
      * @returns {Object}
      * @constructor
      */
-    function ModelService(extender) {
-        Model.extend = extender;
+    function ModelService(helpers, sync, $http) {
+        Model.extend = helpers.extender;
+        Model.helpers = helpers;
+        Model.$http = sync;
+
+        helpers.lodash_methods(Model, lodashMethods, 'attributes');
+
         return Model;
     }
 
-    ModelService.$inject = ["daveawbExtender"]
+    ModelService.$inject = ["daveawbHelpers", "daveawbSync", "$http"]
 
     /**
      * A generic model
@@ -29,7 +49,6 @@
         this.attributes = {};
         if (options.collection) this.collection = options.collection;
         if (options.parse) attrs = this.parse(attrs, options) || {};
-        this.options = options;
         this.isGuarded  = _.isArray(this.guarded);
         this.isFillable = ! this.isGuarded && _.isArray(this.fillable);
         attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
@@ -172,6 +191,38 @@
         },
 
         /**
+         * Sync the model with the server
+         */
+        sync : function() {
+            return Model.$http.apply(this, arguments);
+        },
+
+        /**
+         * Fetch this model from the API
+         * @param options
+         * @returns {*}
+         */
+        fetch: function(options) {
+            options = _.extend({parse: true}, options);
+            var model = this;
+            var success = options.success || _.noop();
+
+            return this.sync('read', this, options).then(function(response) {
+                var path = model.path || "data";
+
+                var serverAttrs = options.parse ? model.parse(Model.helpers.object_path(response, path), options) : response;
+
+                if ( ! model.set(serverAttrs, options)) {
+                    return false;
+                }
+
+                success instanceof Function && success.call(options.context, model, response, options);
+
+                return model;
+            });
+        },
+
+        /**
          * Check if an attribute is non-null or not-undefined
          * @param attr
          * @returns {boolean}
@@ -238,6 +289,20 @@
         },
 
         /**
+         * Get the url for the model
+         * @returns {*}
+         */
+        url: function() {
+            var base =
+                _.result(this, 'urlRoot') ||
+                _.result(this.collection, 'url') ||
+                Model.helpers.urlError();
+            if (this.isNew()) return base;
+            var id = this.get(this.idAttribute);
+            return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
+        },
+
+        /**
          * Cast a value to an integer
          * @param value
          * @returns {Number|*}
@@ -271,10 +336,5 @@
             return new Date(value);
         }
     });
-
-    var modelMethods = { keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
-        omit: 0, chain: 1, isEmpty: 1 };
-
-    addLodashMethods(Model, modelMethods, 'attributes');
 
 })(angular);

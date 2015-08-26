@@ -28,7 +28,7 @@ describe('Collections http', function() {
         it("should error", function() {
             var col = new Collection();
 
-            expect(col.fetch).toThrowError("A URL must be defined.");
+            expect(col.fetch).toThrowError("A URL must be defined on a collection or a urlRoot on a model.");
         });
     });
 
@@ -61,6 +61,8 @@ describe('Collections http', function() {
             col.fetch(1);
 
             $httpBackend.flush();
+
+            expect(col.get(1).toObject()).toEqual({ id: 1, name : "David", age: 33 });
         });
 
         it("should fetch and set with custom path", function() {
@@ -74,12 +76,24 @@ describe('Collections http', function() {
 
             var col = new Col();
 
-            col.fetch(1).then(function(collection) {
-                expect(collection.models[0].get('name')).toEqual("David");
-            });
+            col.fetch(1);
 
             $httpBackend.flush();
+
+            expect(col.models[0].get('name')).toEqual("David");
+            expect(col.models.length).toEqual(1);
         });
     });
 
+    describe("saving models", function() {
+
+    });
+
+    describe("destroying models", function() {
+
+    });
+
+    describe("updating models", function() {
+
+    });
 });

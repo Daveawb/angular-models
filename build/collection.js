@@ -2,23 +2,35 @@
     angular.module('daveawb.angularModels')
         .factory('daveawbCollection', Service);
 
+    var lodashMethods = {
+        forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
+        foldl: 4, inject: 4, reduceRight: 4, foldr: 4, find: 3, detect: 3, filter: 3,
+        select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 2, includes: 2,
+        contains: 2, invoke: 0, max: 3, min: 3, toArray: 1, size: 1, first: 3,
+        head: 3, take: 3, initial: 3, rest: 3, tail: 3, drop: 3, last: 3,
+        without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
+        isEmpty: 1, chain: 1, sample: 3, partition: 3
+    };
 
     /**
      * The factory wrapper for DI
+     * @param helpers
      * @param $http
-     * @param $extender
      * @returns {Object}
      * @constructor
      */
-    function Service(extender, $http) {
+    function Service(helpers, $http) {
 
-        Collection.extend = extender;
+        Collection.extend = helpers.extender;
         Collection.http = $http;
+        Collection.helpers = helpers;
+
+        helpers.lodash_methods(Collection, lodashMethods, 'models');
 
         return Collection;
     }
 
-    Service.$inject = ["daveawbExtender", "$http"];
+    Service.$inject = ["daveawbHelpers", "$http"];
 
     /**
      * The collection
@@ -108,6 +120,16 @@
         },
 
         /**
+         * Pluck a specific attribute from each model
+         * @param attr
+         */
+        pluck: function(attr) {
+            return this.map(function(model) {
+                return model.attributes[attr];
+            });
+        },
+
+        /**
          * Retrieve the model ID attribute
          * @param attrs
          * @returns {*}
@@ -133,11 +155,7 @@
             var self = this;
             var url = this.url;
 
-            if (!url) {
-                throw new Error("A URL must be defined.");
-            }
-
-            this.preFetch();
+            if (!url) Collection.helpers.urlError();
 
             if (id) {
                 url = url.split('/');
@@ -147,17 +165,10 @@
 
             return Collection.http.get(url).then(function (response) {
                 response = self.parse(response);
-                var data = self.path ? stringPath(response.data, self.path) : response.data;
+                var data = self.path ? Collection.helpers.object_path(response.data, self.path) : response.data;
                 self.set(data);
                 return self;
             });
-        },
-
-        /**
-         * A hook to modify the collection pre fetch
-         */
-        preFetch: function () {
-            //
         },
 
         /**
@@ -169,17 +180,5 @@
             return response;
         }
     });
-
-    var collectionMethods = {
-        forEach: 3, each: 3, map: 3, collect: 3, reduce: 4,
-        foldl: 4, inject: 4, reduceRight: 4, foldr: 4, find: 3, detect: 3, filter: 3,
-        select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 2, includes: 2,
-        contains: 2, invoke: 0, max: 3, min: 3, toArray: 1, size: 1, first: 3,
-        head: 3, take: 3, initial: 3, rest: 3, tail: 3, drop: 3, last: 3,
-        without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
-        isEmpty: 1, chain: 1, sample: 3, partition: 3
-    };
-
-    addLodashMethods(Collection, collectionMethods, 'models');
 
 })(angular);

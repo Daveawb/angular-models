@@ -112,4 +112,20 @@ describe('Collections', function() {
         expect(col.findWhere({name:"David"}).get('name')).toBe("David");
         expect(col.where({age:34}).length).toBe(2);
     });
+
+    it("should pluck attributes from all models into an array", function()
+    {
+        var Mod = Model.extend({});
+        var Col = Collection.extend({
+            model : Mod
+        });
+
+        var col = new Col([
+            { name : "David", age:34 },
+            { name : "Iva", age:34 },
+            { name : "Alex", age:23 }
+        ]);
+
+        expect(col.pluck("age")).toEqual([34,34,23]);
+    })
 });

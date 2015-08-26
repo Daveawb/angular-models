@@ -5,11 +5,11 @@ var concat = require('gulp-concat');
 var inSequence = require('run-sequence');
 
 var sourceFiles = [
-    'build/helpers.js',
     'build/module.js',
-    'build/extender.js',
+    'build/helpers.js',
     'build/collection.js',
-    'build/model.js'
+    'build/model.js',
+    'build/sync.js'
 ];
 
 /**
@@ -39,7 +39,7 @@ gulp.task('test:dist', function(done) {
 })
 
 gulp.task('dist', function(done) {
-    return inSequence(['unminified', 'minified', 'test:dist']);
+    inSequence(['unminified', 'minified', 'test:dist']);
 });
 
 gulp.task('unminified', function(done) {
