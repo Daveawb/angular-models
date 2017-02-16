@@ -198,6 +198,39 @@
         },
 
         /**
+         * Persist a model with the server
+         * @param options
+         */
+        save : function(key, value, options) {
+            var attrs;
+            var model = this;
+
+            if (key == null || typeof key === 'object') {
+                attrs = key;
+                options = value;
+            } else {
+                (attrs = {})[key] = value;
+            }
+
+            options = _.extend({parse: true}, options);
+
+            if (attrs && ! this.set(attrs, options)) {
+                return false;
+            }
+
+            return this.sync(this.isNew() ? 'create' : 'update', this, options).then(function(response) {
+
+                var data = options.parse ? model.parse(response) : response.data;
+
+                if (! model.set(data.data, options)) {
+                    return false;
+                }
+
+                return response;
+            }).then(options.success || _.noop());
+        },
+
+        /**
          * Fetch this model from the API
          * @param options
          * @returns {*}
@@ -306,8 +339,9 @@
          * @param value
          * @returns {Number|*}
          */
-        castToInt : function(value) {
-            return parseInt(value, 10);
+        castToInt : function(value, radix) {
+            radix = (radix || 10);
+            return parseInt(value, radix);
         },
 
         /**
@@ -316,7 +350,7 @@
          * @returns {*}
          */
         castToString : function(value) {
-            return value.toString();
+            return (typeof value.toString === 'function') ? value.toString() : value;
         },
 
         /**

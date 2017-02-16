@@ -91,10 +91,56 @@ describe('Models http', function() {
 
     describe("saving a model", function() {
 
+        it("should persist a new model", function() {
+
+            var tmp = _.clone(data);
+            delete(tmp.id);
+
+            $httpBackend.expect('POST', '/testapi/items').respond(201, data);
+
+            var unsaved = new Model(tmp);
+
+            unsaved.save();
+
+            $httpBackend.flush();
+
+            expect(unsaved.get('id')).toBe(1);
+        });
+
+        it("should persist a new model and parse data", function() {
+            var tmp = _.clone(data);
+            delete(tmp.id);
+
+            $httpBackend.expect('POST', '/testapi/items').respond(201, data);
+
+            var unsaved = new Model(tmp);
+
+            spyOn(unsaved, "parse").and.callThrough();
+
+            unsaved.save();
+
+            $httpBackend.flush();
+
+            expect(unsaved.parse).toHaveBeenCalled();
+        });
+
+        it("should update a model if it already exists", function() {
+            $httpBackend.expect('PUT', '/testapi/items/1').respond(200, _.extend(data, {name: 'Graham'}));
+
+            model.save('name', 'Graham');
+
+            $httpBackend.flush();
+
+            expect(model.get('name')).toBe('Graham');
+        });
     });
 
     describe("destroying a model", function() {
+        it("should delete a model on the backend", function() {
+            $httpBackend.expect('DELETE', '/testapi/items/1').respond(200);
 
+            model.delete()
+        });
     });
 
     describe("updating a model", function() {
